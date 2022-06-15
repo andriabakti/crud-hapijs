@@ -1,4 +1,4 @@
-const { addBookHandler, getAllBooksHandler, getBookDetailHandler, editBookHandler, removeBookHandler } = require('./handler')
+import { addBookHandler, getAllBooksHandler, getBookDetailHandler, editBookHandler, removeBookHandler } from './handler.js'
 
 const routes = [
 	{
@@ -28,4 +28,4 @@ const routes = [
 	}
 ]
 
-module.exports = routes
+export default routes

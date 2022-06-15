@@ -1,5 +1,5 @@
-const { nanoid } = require('nanoid')
-const books = require('./books')
+import { nanoid } from 'nanoid'
+import books from './books.js'
 
 const addBookHandler = (request, h) => {
 	const { name, year, author, summary, publisher, pageCount, readPage, reading } = request.payload
@@ -9,17 +9,18 @@ const addBookHandler = (request, h) => {
 	const insertedAt = new Date().toISOString()
 	const updatedAt = insertedAt
 
-	if (name === '') {
+	if (!name) {
 		const response = h.response({
 			status: 'fail',
 			message: 'Gagal menambahkan buku. Mohon isi nama buku'
 		})
 		response.code(400)
 		return response
-	} else if (readPage > pageCount) {
+	}
+	if (readPage > pageCount) {
 		const response = h.response({
 			status: 'fail',
-			message: 'Gagal menambahkan buku. readpage tidak boleh lebih besar dari pageCount'
+			message: 'Gagal menambahkan buku. readPage tidak boleh lebih besar dari pageCount'
 		})
 		response.code(400)
 		return response
@@ -30,7 +31,7 @@ const addBookHandler = (request, h) => {
 	}
 	books.push(newBook)
 
-	const isSuccess = books.filter((book) => book.id === id).length > 1
+	const isSuccess = books.filter((book) => book.id === id)
 	if (isSuccess) {
 		const response = h.response({
 			status: 'success',
@@ -45,7 +46,7 @@ const addBookHandler = (request, h) => {
 
 	const response = h.response({
 		status: 'error',
-		message: 'B' + 'uku gagal ditambahkan'
+		message: 'Buku gagal ditambahkan'
 	})
 	response.code(500)
 	return response
@@ -53,27 +54,47 @@ const addBookHandler = (request, h) => {
 
 const getAllBooksHandler = (request, h) => {
 	const { name, reading, finished } = request.query
-
 	let result
+
 	if (name) {
-		const bookByName = books.find((item) => {
-			if (item.name === name) {
-				return true
+		result = books.filter((item) => {
+			if (item.name.toLowerCase().includes(name.toLowerCase())) {
+				return item
 			}
 		})
-		result = bookByName
-	} else if (reading) {
-		const bookOnReading = books.filter((item) => item.reading === reading)
-		result = bookOnReading
-	} else if (finished) {
-		const finishedBook = books.filter((item) => item.finished === finished)
-		result = finishedBook
 	}
+	if (reading) {
+		if (Number(reading) === 0) {
+			result = books.filter((item) => item.reading === false)
+		}
+		if (Number(reading) === 1) {
+			result = books.filter((item) => item.reading === true)
+		}
+	}
+	if (finished) {
+		if (Number(finished) === 0) {
+			result = books.filter((item) => item.finished === false)
+		}
+		if (Number(finished) === 1) {
+			result = books.filter((item) => item.finished === true)
+		}
+	}
+	if (!name && !reading && !finished) {
+		result = books
+	}
+
+	const allBooks = result.map(item => {
+		return ({
+			id: item.id,
+			name: item.name,
+			publisher: item.publisher
+		})
+	})
 
 	const response = h.response({
 		status: 'success',
 		data: {
-			books: result ?? books
+			books: allBooks
 		}
 	})
 	response.code(200)
@@ -108,17 +129,18 @@ const editBookHandler = (request, h) => {
 	const { name, year, author, summary, publisher, pageCount, readPage, reading } = request.payload
 	const updatedAt = new Date().toISOString()
 
-	if (name === '') {
+	if (!name) {
 		const response = h.response({
 			status: 'fail',
-			message: 'Gagal menambahkan buku. Mohon isi nama buku'
+			message: 'Gagal memperbarui buku. Mohon isi nama buku'
 		})
 		response.code(400)
 		return response
-	} else if (readPage > pageCount) {
+	}
+	if (readPage > pageCount) {
 		const response = h.response({
 			status: 'fail',
-			message: 'Gagal menambahkan buku. readpage tidak boleh lebih besar dari pageCount'
+			message: 'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount'
 		})
 		response.code(400)
 		return response
@@ -177,4 +199,4 @@ const removeBookHandler = (request, h) => {
 	return response
 }
 
-module.exports = { addBookHandler, getAllBooksHandler, getBookDetailHandler, editBookHandler, removeBookHandler }
+export { addBookHandler, getAllBooksHandler, getBookDetailHandler, editBookHandler, removeBookHandler }
